@@ -55,7 +55,11 @@ echo "successfully bootstrapped."
 
 cp inchroot.sh /mnt/
 
-echo "run ./inchroot.sh now" 
+echo "<<<>>>
+
+run './inchroot'.sh now
+
+<<<>>>" 
 # Enter chroot environment
 xchroot /mnt /bin/bash || handle_error
 
