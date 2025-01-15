@@ -110,7 +110,8 @@ ln -s /etc/sv/NetworkManager /etc/runit/runsvdir/default/ || handle_error
 
 # Reminder to edit rc.conf
 echo "Please remember to edit /etc/rc.conf as needed."
-
+echo "Run the following command to edit sudoers file:" 
+echo "EDITOR=nvim visudo"
 # Final confirmation message
 echo "Chroot environment set up, /etc/fstab created, GRUB configuration updated with the UUID for $rbs_block, locale added to /etc/default/libc-locales, GRUB installed and configured, root password set, user account ($username) created, services enabled, and system reconfigured."
 
