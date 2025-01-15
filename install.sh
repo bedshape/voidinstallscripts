@@ -45,7 +45,7 @@ swapon /dev/vols/swap || handle_error
 mkdir -p /mnt/var/db/xbps/keys 
 cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys || handle_error
 
-XBPS_ARCH=x86_64 xbps-install -S -r /mnt -R "https://repo-fastly.voidlinux.org/current" base-system linux linux-firmware-amd neovim NetworkManager polkit pipewire alsa-pipewire mesa lvm2 cryptsetup grub-x86_64-efi efibootmgr fastfetch elogind dbus curl alsa-utils bsdtar || handle_error
+XBPS_ARCH=x86_64 xbps-install -S -r /mnt -R "https://repo-fastly.voidlinux.org/current" base-system linux linux-firmware-amd neovim NetworkManager xmirror xtools polkit pipewire alsa-pipewire mesa lvm2 cryptsetup grub-x86_64-efi efibootmgr fastfetch elogind dbus curl alsa-utils bsdtar || handle_error
 
 # Confirmation message
 echo "successfully bootstrapped."
