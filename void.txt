@@ -1,0 +1,107 @@
+<<<+++ evie's guide to installing a linux system with full disk encryption (apart from grub on efi partition) with secure boot, signed with your own keys. extra based edition on musl void linux, reject soystemd! +++>>> 
+
+
+<-- connect to internet --> 
+
+just plug in an ethernet cable, wpa_supplicant will give you cancer
+
+
+<-- PARTITION SCHEME -->
+
+/dev/xyz1 = /efi
+/dev/xyz2 = / + boot + swap
+
+
+<-- ENCRYPTING /dev/xyz/3 -->
+
+cryptsetup luksFormat --type luks1 /dev/xyz2 
+cryptsetup open /dev/xyz2 rbs 
+
+
+<-- SETTING UP LVM ON rbs (/dev/xyz3) -->
+rbs = root + boot + swap
+
+pvcreate /dev/mapper/rbs
+vgcreate vols /dev/mapper/rbs
+	[assuming 32G ram is used]
+	lvcreate -L 8G -n swap vols
+	lvcreate -L 1G -n boot vols
+	lvcreate -l 100%FREE -n root vols
+
+
+<-- SETTING UP FILE SYSTEMS ON /dev/xyz3) + efi --> 
+
+mkfs.ext4 /dev/vols/root
+mkfs.fat -F32 /dev/vols/boot
+mkswap /dev/vols/swap
+mkfs.fat -F32 /dev/xyz1 
+
+
+<-- MOUNTING --> 
+
+mount /dev/vols/root /mnt
+mount --mkdir /dev/vols/boot /mnt/boot
+swapon /dev/vols/swap
+mount --mkdir /dev/xyz1 /mnt/efi
+
+
+<-- BOOTSTRAP -->
+
+mkdir -p /mnt/var/db/xbps/keys
+cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
+REPO=https://repo-default.voidlinux.org/current/musl
+ARCH=x86_64-musl
+
+XBPS_ARCH=$ARCH xbps-install -S -r /mnt -R "$REPO" base-system linux linux-firmware-amd NetworkManager dbus cryptsetup mesa lvm2 neovim sbctl grub-x86_64-efi efibootmgr keyd turnstile seatd polkit 
+
+
+<-- CHROOT --> 
+
+xchroot /mnt /bin/bash
+	
+	<-- FSTAB -->
+	cp /proc/mounts /etc/fstab
+	blkid >> /etc/fstab
+		# <file system>   <dir> <type>  <options>             <dump>  <pass>
+	tmpfs             /tmp  tmpfs   defaults,nosuid,nodev 0       0
+	/dev/voidvm/root  /     ext4    defaults              0       0
+	/dev/voidvm/boot  /boot vfat    defaults              0       0
+	/dev/voidvm/swap  swap  swap    defaults              0       0
+	/dev/xyz1	  /efi  vfat    defaults	      0       0 
+	(change to UUID=<uuid> for all but the tmpfs line)
+
+	<-- GRUB -->
+	echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub
+	blkid >> /etc/default/grub
+	nvim /etc/default/grub
+	-> add "rd.lvm.vg=vols rd.luks.uuid==<xyz2 uuid>"
+	-> delete the remaining blkid lines at the bottom
+	grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id="grub" --recheck --modules="tpm" --disable-shim-lock
+	grub-mkconfig -o /boot/grub/grub.cfg
+
+	<-- MISC -->
+	echo "hostname" > /etc/hostname
+	passwd
+	useradd twink
+	usermod -aG wheel twink
+	passwd twink
+	EDITOR=nvim visudo
+	nvim /etc/rc.conf
+	
+	<-- GENERATE INITRAMFS WITH DRACUT -->
+	xbps-reconfigure -fa
+
+	exit
+
+
+<-- reboot --> 
+
+reboot
+
+
+<-- secure boot with sbctl, signed with our own keys -->
+
+sbctl create-keys
+sbctl enroll-keys
+sbctl sign --save /boot/vmlinuz-linux 
+sbctl sign --save /efi/EFI/grub/grubx64.efi
