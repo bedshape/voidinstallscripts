@@ -1,6 +1,6 @@
 read -p "enter locale: " locale 
 read -p "enter rbs_block: " rbs_block 
-read -p "enter hostname: " hostname
+read -p "enter root/boot/swap blockname (/dev/xyz2): " hostname
 
 echo "$hostname" > /etc/hostname 
 
