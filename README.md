@@ -5,8 +5,13 @@ it is assumed that you are using a UEFI amd64 system and have already partitione
 prior to cloning this repo partition your drives and, run:
 
 xmirror <-- choose geographic mirror
+
 xi <-- sync
+
 xi git openssl <-- git + openssl to clone repo
+
 cd voidinstallscripts 
+
 chmod +x * <-- scripts executable
+
 ./install.sh <-- run
