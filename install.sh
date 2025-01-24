@@ -51,7 +51,7 @@ XBPS_ARCH=x86_64 xbps-install -S -r /mnt -R "https://repo-fastly.voidlinux.org/c
 echo "successfully bootstrapped."
 
 # Generate /etc/fstab using genfstab
-xgenfstab -U /mnt >> /mnt/etc/fstab || handle_error
+./genfstab -U /mnt >> /mnt/etc/fstab || handle_error
 
 cp inchroot.sh /mnt/
 
